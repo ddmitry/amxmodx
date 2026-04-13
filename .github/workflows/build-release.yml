@@ -15,12 +15,12 @@ jobs:
       matrix:
         include:
           - platform: windows
-            os: windows-latest
+            os: windows-2022
             os_short: win
           - platform: linux
             os: ubuntu-latest
             os_short: linux
-            container_image: ghcr.io/alliedmodders/build-containers/debian9:latest
+            container_image: ghcr.io/alliedmodders/build-containers/debian10:latest
       fail-fast: false
     name: ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
@@ -70,11 +70,29 @@ jobs:
           mkdir -p amxmodx
           ../amxmodx/support/checkout-deps.sh
 
-      - name: Setup MSVC (x86)
+      - name: Install MSVC v140 toolset
+        if: startsWith(matrix.os, 'windows')
+        shell: powershell
+        run: |
+          $vsInstaller = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vs_installer.exe"
+          & $vsInstaller modify `
+            --installPath (Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\*" -Directory | Select-Object -First 1).FullName `
+            --add Microsoft.VisualStudio.Component.VC.140 `
+            --quiet --norestart --wait
+
+      - name: Setup MSVC (x86, v140)
         if: startsWith(matrix.os, 'windows')
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x86
+          toolset: 14.0
+
+      - name: Configure XP targeting
+        if: startsWith(matrix.os, 'windows')
+        shell: cmd
+        run: |
+          echo CL=/D_USING_V110_SDK71_ %%CL%%>> %GITHUB_ENV%
+          echo LINK=/SUBSYSTEM:CONSOLE,5.01 %%LINK%%>> %GITHUB_ENV%
 
       - name: Setup NASM (Windows)
         if: startsWith(matrix.os, 'windows')
