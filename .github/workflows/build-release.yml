@@ -74,18 +74,32 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: powershell
         run: |
-          $vsInstaller = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vs_installer.exe"
-          & $vsInstaller modify `
-            --installPath (Get-ChildItem "${env:ProgramFiles}\Microsoft Visual Studio\2022\*" -Directory | Select-Object -First 1).FullName `
-            --add Microsoft.VisualStudio.Component.VC.140 `
-            --quiet --norestart --wait
+          $installPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe"
+          Write-Host "Installing v140 toolset to $installPath ..."
+          $proc = Start-Process -FilePath $vsInstaller -ArgumentList `
+            "modify", "--installPath", $installPath, `
+            "--add", "Microsoft.VisualStudio.Component.VC.140", `
+            "--quiet", "--norestart", "--wait" `
+            -Wait -PassThru
+          Write-Host "Installer exit code: $($proc.ExitCode)"
+          if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
+            throw "VS installer failed with exit code $($proc.ExitCode)"
+          }
+          # Verify toolset was installed
+          $toolset = Get-ChildItem "$installPath\VC\Tools\MSVC\14.0*" -Directory -ErrorAction SilentlyContinue
+          if ($toolset) {
+            Write-Host "Found v140 toolset: $($toolset.FullName)"
+          } else {
+            throw "v140 toolset directory not found after installation"
+          }
 
       - name: Setup MSVC (x86, v140)
         if: startsWith(matrix.os, 'windows')
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x86
-          toolset: 14.0
+          toolset: '14.0'
 
       - name: Configure XP targeting
         if: startsWith(matrix.os, 'windows')
