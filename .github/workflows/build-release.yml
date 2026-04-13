@@ -4,7 +4,6 @@ on:
     branches:
       - master
       - '1.9-dev'
-      - 'psy/gh-ci'
 env:
   MYSQL_VERSION: '5.5'
 jobs:
@@ -188,26 +187,26 @@ jobs:
           name: pdbs
           path: pdbs/*
 
-      # - name: Create Release
-      #   uses: ncipollo/release-action@v1.21.0
-      #   with:
-      #     allowUpdates: true
-      #     replacesArtifacts: false
-      #     omitBodyDuringUpdate: true
-      #     omitDraftDuringUpdate: true
-      #     omitNameDuringUpdate: true
-      #     omitPrereleaseDuringUpdate: true
-      #     omitBody: true
+      - name: Create Release
+        uses: ncipollo/release-action@v1.21.0
+        with:
+          allowUpdates: true
+          replacesArtifacts: false
+          omitBodyDuringUpdate: true
+          omitDraftDuringUpdate: true
+          omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          omitBody: true
 
-      #     artifacts: amxmodx/build/release/*
-      #     artifactContentType: ${{ matrix.platform == 'windows' && 'application/zip' || 'application/gzip' }}
-      #     artifactErrorsFailBuild: true
+          artifacts: amxmodx/build/release/*
+          artifactContentType: ${{ matrix.platform == 'windows' && 'application/zip' || 'application/gzip' }}
+          artifactErrorsFailBuild: true
 
-      #     tag: ${{ steps.package.outputs.version }}
-      #     commit: ${{ github.sha }}
-      #     generateReleaseNotes: true
+          tag: ${{ steps.package.outputs.version }}
+          commit: ${{ github.sha }}
+          generateReleaseNotes: true
 
-      #     draft: false
-      #     prerelease: ${{ github.ref == 'refs/heads/master' }}
-      #     makeLatest: ${{ github.ref != 'refs/heads/master' }}
-      #     token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: ${{ github.ref == 'refs/heads/master' }}
+          makeLatest: ${{ github.ref != 'refs/heads/master' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
